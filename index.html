@@ -796,6 +796,18 @@
             }
         }
 
+        // Function to explicitly set canvas size based on container
+        function setCanvasSize() {
+            const chartContainer = document.getElementById('chart-container');
+            const chartCanvas = document.getElementById('btcChart');
+            if (chartContainer && chartCanvas) {
+                // Set canvas dimensions to match container's client dimensions
+                chartCanvas.width = chartContainer.clientWidth;
+                chartCanvas.height = chartContainer.clientHeight > 0 ? chartContainer.clientHeight : 300; // Use a default height if container height is 0
+            }
+        }
+
+
          // --- Currency Converter Logic ---
 
          // Event listeners for converter inputs and selects
@@ -805,10 +817,13 @@
          document.getElementById('currency2').addEventListener('change', performConversion);
 
 
-        // Fetch data and render chart immediately when the page loads
-        fetchBtcPriceAndChange();
-        fetchAndRenderChart();
-        populateConverterCurrencies(); // Populate converter dropdowns on load
+        // Set canvas size and fetch data/render chart immediately when the page loads
+        window.onload = function() {
+            setCanvasSize(); // Set initial canvas size
+            fetchBtcPriceAndChange();
+            fetchAndRenderChart();
+            populateConverterCurrencies(); // Populate converter dropdowns on load
+        };
 
 
         // Fetch the price and change every 30 seconds
@@ -840,6 +855,7 @@
 
          // Add a resize observer to make the chart responsive
          const resizeObserver = new ResizeObserver(() => {
+             setCanvasSize(); // Update canvas size on container resize
              if (btcChartInstance) {
                  btcChartInstance.resize();
              }
@@ -852,4 +868,3 @@
 
 </body>
 </html>
-
