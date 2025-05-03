@@ -58,13 +58,22 @@
         /* Style for the chart container */
         #chart-container {
             width: 100%;
-            max-width: 800px; /* Match container max-width */
+            max-width: 800px; /* Limit max width for better readability on large screens */
             margin: 20px auto; /* Center the chart and add margin */
             background-color: #f7fafc; /* Light background for chart area */
             border-radius: 0.5rem; /* Rounded corners for chart container */
             padding: 15px; /* Padding inside chart container */
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
         }
+
+         /* Media query to remove max-width on smaller screens */
+         @media (max-width: 768px) { /* Adjust breakpoint as needed */
+             #chart-container {
+                 max-width: none; /* Remove max-width on smaller screens */
+                 padding: 10px; /* Adjust padding for smaller screens */
+             }
+         }
+
 
          /* Ensure canvas is responsive */
         #btcChart {
@@ -715,7 +724,7 @@
                                              return formattedTime;
                                          } else {
                                              const formattedDate = date.toLocaleDateString('en-US', labelFormat);
-                                             // console.log("Formatted Date (toLocaleDateString):", formattedDate);
+                                             // console.log("Formatted Date (toLocaleDateDateString):", formattedDate);
                                              return formattedDate;
                                          }
                                     }
@@ -843,3 +852,4 @@
 
 </body>
 </html>
+
