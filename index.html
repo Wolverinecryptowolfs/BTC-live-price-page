@@ -39,15 +39,20 @@
         }
 
         /* Style for the currency select dropdown */
-        #currency-select {
+        #currency-select,
+        .converter-select {
             background-color: #e2e8f0; /* Light gray background for contrast */
             color: #1a202c; /* Dark text */
             border: 1px solid #718096; /* Darker gray border */
             border-radius: 0.25rem; /* Rounded corners */
             padding: 0.5rem;
-            margin-bottom: 1rem;
             font-size: 1rem;
         }
+
+         #currency-select {
+             margin-bottom: 1rem; /* Add margin below the main currency select */
+         }
+
 
         /* Style for the chart container */
         #chart-container {
@@ -65,6 +70,86 @@
             width: 100% !important;
             height: auto !important;
         }
+
+        /* Style for time range buttons */
+        .time-range-buttons {
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+            gap: 10px; /* Space between buttons */
+        }
+
+        .time-range-button {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db; /* Light gray border */
+            border-radius: 0.25rem;
+            background-color: #f3f4f6; /* Very light gray background */
+            color: #1f2937; /* Dark gray text */
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .time-range-button:hover {
+            background-color: #e5e7eb; /* Slightly darker gray on hover */
+        }
+
+        .time-range-button.active {
+            background-color: #3b82f6; /* Blue background for active button */
+            color: #ffffff; /* White text for active button */
+            border-color: #3b82f6;
+        }
+
+        /* Style for the currency converter section */
+        .currency-converter {
+            margin-top: 30px; /* Add space above the converter */
+            padding: 20px;
+            background-color: #f7fafc; /* Light background */
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px; /* Limit converter width */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .converter-input-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            width: 100%; /* Make input group take full width */
+        }
+
+        .converter-input-group input[type="number"],
+        .converter-input-group input[type="text"] { /* Include text type for styling */
+            flex-grow: 1; /* Allow input to take available space */
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.25rem;
+            background-color: #ffffff;
+            color: #1a202c;
+            font-size: 1rem;
+        }
+
+         .converter-input-group input[type="number"]:focus,
+         .converter-input-group input[type="text"]:focus { /* Include text type for styling */
+             outline: none;
+             border-color: #3b82f6; /* Highlight on focus */
+             box-shadow: 0 0 0 1px #3b82f6;
+         }
+
+        .converter-select {
+             flex-shrink: 0; /* Prevent select from shrinking */
+        }
+
+         .converter-equals {
+             font-size: 1.5rem;
+             font-weight: bold;
+             margin: 10px 0;
+         }
     </style>
 </head>
 <body class="bg-white text-gray-900 font-sans">
@@ -96,8 +181,33 @@
         <p class="mt-4 text-sm text-gray-600">Price and 24h change updates every 30 seconds (via CryptoCompare API)</p>
     </div>
 
+    <div class="time-range-buttons">
+        <button class="time-range-button active" data-range="1D">1D</button>
+        <button class="time-range-button" data-range="7D">7D</button>
+        <button class="time-range-button" data-range="1M">1M</button>
+        <button class="time-range-button" data-range="6M">6M</button>
+        <button class="time-range-button" data-range="1Y">1Y</button>
+        <button class="time-range-button" data-range="ALL">ALL</button>
+    </div>
+
     <div id="chart-container">
         <canvas id="btcChart"></canvas>
+    </div>
+
+    <div class="currency-converter">
+        <h2 class="text-xl font-bold mb-4 text-gray-900">Currency Converter</h2>
+        <div class="converter-input-group">
+            <input type="number" id="amount1" value="1" min="0">
+            <select id="currency1" class="converter-select">
+                <option value="BTC">BTC</option>
+                 </select>
+        </div>
+         <div class="converter-equals">=</div>
+        <div class="converter-input-group">
+            <input type="text" id="amount2" value="">
+            <select id="currency2" class="converter-select">
+                 </select>
+        </div>
     </div>
 
 
@@ -114,10 +224,153 @@
             CNY: '¥',
             INR: '₹',
             BRL: 'R$',
+            BTC: '₿', // Symbol for Bitcoin
             // Add more currency symbols as needed
         };
 
+         // List of supported fiat currencies (matching the main currency select)
+         const fiatCurrencies = ['USD', 'EUR', 'GBP', 'JPY', 'CAD', 'AUD', 'CHF', 'CNY', 'INR', 'BRL'];
+
+
         let btcChartInstance = null; // Variable to hold the chart instance
+        let selectedTimeRange = '1D'; // Default selected time range
+        let currentBtcPriceInSelectedFiat = 0; // Variable to store the current BTC price in the selected fiat currency
+
+
+         // Populate currency dropdowns in the converter
+         function populateConverterCurrencies() {
+             const currency1Select = document.getElementById('currency1');
+             const currency2Select = document.getElementById('currency2');
+
+             // Clear existing options (except for BTC in currency1)
+             currency1Select.innerHTML = '<option value="BTC">BTC</option>';
+             currency2Select.innerHTML = '';
+
+
+             // Add fiat currencies to both dropdowns
+             fiatCurrencies.forEach(currency => {
+                 const option1 = document.createElement('option');
+                 option1.value = currency;
+                 option1.textContent = currency;
+                 currency1Select.appendChild(option1); // Add fiat currencies to the first dropdown
+
+                 const option2 = document.createElement('option');
+                 option2.value = currency;
+                 option2.textContent = currency;
+                 currency2Select.appendChild(option2);
+             });
+
+              // Add BTC to the second dropdown
+             const btcOption2 = document.createElement('option');
+             btcOption2.value = 'BTC';
+             btcOption2.textContent = 'BTC';
+             currency2Select.appendChild(btcOption2);
+
+             // Set default selections
+             currency1Select.value = 'BTC';
+             // Set currency2 to the initially selected fiat currency from the main dropdown
+             const mainCurrencySelect = document.getElementById('currency-select');
+             currency2Select.value = mainCurrencySelect.value;
+         }
+
+
+        // Function to perform currency conversion
+        function performConversion(event) {
+            const amount1Input = document.getElementById('amount1');
+            const amount2Input = document.getElementById('amount2');
+            const currency1Select = document.getElementById('currency1');
+            const currency2Select = document.getElementById('currency2');
+
+            const currency1 = currency1Select.value;
+            const currency2 = currency2Select.value;
+
+            let inputAmount;
+            let outputInput;
+            let inputCurrency;
+            let outputCurrency;
+
+            // Determine which input triggered the conversion
+            if (event && event.target.id === 'amount1') {
+                inputAmount = parseFloat(amount1Input.value);
+                outputInput = amount2Input;
+                inputCurrency = currency1;
+                outputCurrency = currency2;
+            } else if (event && event.target.id === 'amount2') {
+                 // Remove currency symbol and commas before parsing for amount2
+                 const cleanedAmount2 = amount2Input.value.replace(/[^0-9.-]/g, '');
+                 inputAmount = parseFloat(cleanedAmount2);
+                 outputInput = amount1Input;
+                 inputCurrency = currency2;
+                 outputCurrency = currency1;
+            } else {
+                 // If no event (e.g., called on initial load or currency change)
+                 // Default to converting from amount1
+                 inputAmount = parseFloat(amount1Input.value);
+                 outputInput = amount2Input;
+                 inputCurrency = currency1;
+                 outputCurrency = currency2;
+            }
+
+
+            if (isNaN(inputAmount)) {
+                outputInput.value = '';
+                return;
+            }
+
+            let convertedAmount = 0;
+
+            // Conversion logic based on current BTC price in the selected fiat currency
+            if (currentBtcPriceInSelectedFiat > 0) {
+                if (inputCurrency === 'BTC' && fiatCurrencies.includes(outputCurrency)) {
+                    // BTC to Fiat
+                    convertedAmount = inputAmount * currentBtcPriceInSelectedFiat;
+                } else if (fiatCurrencies.includes(inputCurrency) && outputCurrency === 'BTC') {
+                    // Fiat to BTC
+                     // Assuming the input fiat currency is the same as the main selected fiat for simplicity
+                     if (inputCurrency === document.getElementById('currency-select').value) {
+                         convertedAmount = inputAmount / currentBtcPriceInSelectedFiat;
+                     } else {
+                          outputInput.value = "Unsupported Fiat to BTC";
+                          console.warn("Unsupported Fiat to BTC conversion for different fiat than main selection.");
+                          return;
+                     }
+                } else if (fiatCurrencies.includes(inputCurrency) && fiatCurrencies.includes(outputCurrency)) {
+                    // Fiat to Fiat (requires intermediate step via BTC or direct fiat rates)
+                     console.warn("Fiat-to-Fiat conversion via BTC might not be perfectly accurate without direct fiat exchange rates.");
+                     // For now, indicate this is not directly supported with the current setup.
+                     outputInput.value = "Fiat-to-Fiat N/A";
+                     return;
+
+                } else if (inputCurrency === outputCurrency) {
+                    // Same currency conversion
+                    convertedAmount = inputAmount;
+                } else {
+                     outputInput.value = "Unsupported Conversion"; // Unsupported conversion
+                     console.warn("Unsupported conversion type.");
+                     return;
+                }
+
+                // Format the converted amount
+                 const formattedConvertedAmount = convertedAmount.toLocaleString('en-US', {
+                     minimumFractionDigits: outputCurrency === 'BTC' ? 8 : 2, // More digits for BTC
+                     maximumFractionDigits: outputCurrency === 'BTC' ? 8 : 2,
+                 });
+
+                // Get the symbol for the output currency and prepend it if it's a text input
+                 const outputCurrencySymbol = currencySymbols[outputCurrency] || '';
+                 if (outputInput.type === 'text') {
+                     outputInput.value = `${outputCurrencySymbol}${formattedConvertedAmount}`;
+                 } else {
+                      // If the output is a number input (like amount1), just set the number
+                      outputInput.value = convertedAmount;
+                 }
+
+
+            } else {
+                outputInput.value = "Loading price..."; // Price not loaded yet
+            }
+        }
+
 
         // Function to fetch and display the BTC price and 24h change for the selected currency
         async function fetchBtcPriceAndChange() {
@@ -155,6 +408,9 @@
                 const btcPrice = btcData.PRICE;
                 const priceChange = btcData.CHANGE24HOUR;
                 const priceChangePercent = btcData.CHANGEPCT24HOUR;
+
+                // Store the fetched price for the converter
+                currentBtcPriceInSelectedFiat = btcPrice;
 
 
                 // Format the price with the correct currency symbol
@@ -197,6 +453,9 @@
                     priceElement.classList.add('text-green-500'); // Changed to green-500 for better contrast on white
                 }
 
+                // Perform conversion after fetching the latest price
+                performConversion();
+
 
             } catch (error) {
                 // Log any errors and display an error message
@@ -208,10 +467,15 @@
                 priceElement.classList.add('text-red-500');
                 changeElement.classList.remove('text-green-500');
                 changeElement.classList.add('text-red-500');
+
+                 // Also update converter to show error
+                 document.getElementById('amount2').value = "Error";
+                 currentBtcPriceInSelectedFiat = 0; // Reset price on error
+                 performConversion(); // Attempt conversion with 0 price (will show loading/error)
             }
         }
 
-        // Function to fetch and render the 1-hour chart
+        // Function to fetch and render the chart based on the selected time range
         async function fetchAndRenderChart() {
             const currencySelect = document.getElementById('currency-select');
             const selectedCurrency = currencySelect.value;
@@ -223,9 +487,78 @@
                 btcChartInstance.destroy();
             }
 
-            // CryptoCompare API endpoint for historical hourly data
-            // Fetching 168 data points (7 days * 24 hours) for a good overview
-            const apiUrl = `https://min-api.cryptocompare.com/data/v2/histohour?fsym=BTC&tsym=${selectedCurrency}&limit=168&aggregate=1`;
+            let apiUrl = '';
+            let timeUnit = '';
+            let labelFormat = {};
+            let chartTitle = `BTC Price (${selectedCurrency})`;
+            let limit = 0; // Initialize limit
+
+
+            // Determine API endpoint, limit, and time unit based on selected time range
+            switch (selectedTimeRange) {
+                case '1D':
+                    // Fetch minute data for the last 24 hours (1440 minutes)
+                    apiUrl = `https://min-api.cryptocompare.com/data/v2/histominute?fsym=BTC&tsym=${selectedCurrency}`;
+                    limit = 1440; // Fetch exactly 1440 data points for 24 hours
+                    timeUnit = 'minute';
+                     // Include hour12: true for AM/PM format
+                     labelFormat = { hour: '2-digit', minute: '2-digit', hour12: true };
+                     chartTitle = `BTC Price (${selectedCurrency}) - Last 24 Hours (Minute Data)`;
+                    break;
+                case '7D':
+                    // Fetch hourly data for the last 7 days (168 hours)
+                    apiUrl = `https://min-api.cryptocompare.com/data/v2/histohour?fsym=BTC&tsym=${selectedCurrency}`;
+                    limit = 168; // Fetch exactly 168 data points for 7 days
+                    timeUnit = 'hour';
+                     // Include hour12: true for AM/PM format and day
+                     labelFormat = { hour: '2-digit', minute: '2-digit', day: 'numeric', hour12: true };
+                     chartTitle = `BTC Price (${selectedCurrency}) - Last 7 Days (Hourly Data)`;
+                    break;
+                case '1M':
+                    // Fetch hourly data for the last 30 days (approx 720 hours)
+                     apiUrl = `https://min-api.cryptocompare.com/data/v2/histohour?fsym=BTC&tsym=${selectedCurrency}`;
+                     limit = 720; // Fetch approximately 30 days of hourly data
+                    timeUnit = 'hour'; // Changed to hourly data
+                     // Include hour12: true for AM/PM format, day, and month for hourly data over a month
+                     labelFormat = { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true };
+                     chartTitle = `BTC Price (${selectedCurrency}) - Last 1 Month (Hourly Data)`; // Updated title
+                    break;
+                 case '6M':
+                    // Fetch daily data for the last 180 days (approx 6 months)
+                     apiUrl = `https://min-api.cryptocompare.com/data/v2/histoday?fsym=BTC&tsym=${selectedCurrency}`;
+                     limit = 180; // Fetch approximately 6 months of daily data
+                    timeUnit = 'day';
+                     labelFormat = { month: 'short', day: 'numeric', year: 'numeric' };
+                     chartTitle = `BTC Price (${selectedCurrency}) - Last 6 Months (Daily Data)`;
+                    break;
+                 case '1Y':
+                    // Fetch daily data for the last 365 days (approx 1 year)
+                     apiUrl = `https://min-api.cryptocompare.com/data/v2/histoday?fsym=BTC&tsym=${selectedCurrency}`;
+                     limit = 365; // Fetch approximately 1 year of daily data
+                    timeUnit = 'day';
+                     labelFormat = { month: 'short', day: 'numeric', year: 'numeric' };
+                     chartTitle = `BTC Price (${selectedCurrency}) - Last 1 Year (Daily Data)`;
+                    break;
+                case 'ALL':
+                    // Fetch daily data for a large limit (CryptoCompare API limit is 2000 for histoday)
+                    apiUrl = `https://min-api.cryptocompare.com/data/v2/histoday?fsym=BTC&tsym=${selectedCurrency}`;
+                    limit = 2000; // Use the maximum allowed limit for histoday
+                    timeUnit = 'day';
+                     labelFormat = { month: 'short', day: 'numeric', year: 'numeric' };
+                     chartTitle = `BTC Price (${selectedCurrency}) - All Time (Daily Data)`;
+                    break;
+                default:
+                    // Default to 1 Day if something goes wrong
+                    apiUrl = `https://min-api.cryptocompare.com/data/v2/histominute?fsym=BTC&tsym=${selectedCurrency}`;
+                    limit = 1440;
+                    timeUnit = 'minute';
+                     labelFormat = { hour: '2-digit', minute: '2-digit', hour12: true };
+                     chartTitle = `BTC Price (${selectedCurrency}) - Last 24 Hours (Minute Data)`;
+            }
+
+            // Append the limit parameter to the API URL
+            apiUrl += `&limit=${limit}`;
+
 
             try {
                 const response = await fetch(apiUrl);
@@ -238,7 +571,22 @@
 
                 // Check if data is available
                 if (!data.Data || !data.Data.Data || data.Data.Data.length === 0) {
-                    throw new Error(`No historical data available for BTC in ${selectedCurrency}`);
+                     // If no data for the specific range, try fetching 1D as a fallback
+                     if (selectedTimeRange !== '1D') {
+                         console.warn(`No data for ${selectedTimeRange}, attempting to load 1D data.`);
+                         selectedTimeRange = '1D'; // Set range to 1D
+                         // Update active button visually
+                         document.querySelectorAll('.time-range-button').forEach(button => {
+                             button.classList.remove('active');
+                             if (button.dataset.range === '1D') {
+                                 button.classList.add('active');
+                             }
+                         });
+                         fetchAndRenderChart(); // Call recursively for 1D
+                         return; // Exit current call
+                     } else {
+                         throw new Error(`No historical data available for BTC in ${selectedCurrency} for 1D`);
+                     }
                 }
 
                 // Process the historical data
@@ -246,11 +594,19 @@
                 const chartData = [];
 
                 data.Data.Data.forEach(hourData => {
-                    // Use the timestamp for the label (convert to readable format)
                     const date = new Date(hourData.time * 1000); // Convert seconds to milliseconds
-                    chartLabels.push(date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })); // Format time
 
-                    // Use the closing price for the data point
+                    // Log raw timestamp and created Date object during data processing
+                    // console.log("Processing Data - Raw Timestamp:", hourData.time);
+                    // console.log("Processing Data - Date object:", date);
+                    // console.log("Processing Data - Date object getTime():", date.getTime());
+
+
+                     if (timeUnit === 'minute' || timeUnit === 'hour') {
+                         chartLabels.push(date.toLocaleTimeString('en-US', labelFormat)); // Format time for minute/hourly data in English
+                     } else {
+                         chartLabels.push(date.toLocaleDateString('en-US', labelFormat)); // Format date for daily/longer in English
+                     }
                     chartData.push(hourData.close);
                 });
 
@@ -260,7 +616,7 @@
                     data: {
                         labels: chartLabels,
                         datasets: [{
-                            label: `BTC Price (${selectedCurrency})`,
+                            label: chartTitle, // Use the dynamic chart title
                             data: chartData,
                             borderColor: '#34d399', // Green color for the line
                             backgroundColor: 'rgba(52, 211, 153, 0.2)', // Light green fill below the line
@@ -285,11 +641,16 @@
                                 display: true,
                                 title: {
                                     display: true,
-                                    text: 'Time (Hourly)',
+                                    text: timeUnit === 'minute' || timeUnit === 'hour' ? 'Time' : 'Date', // Update x-axis title based on time unit
                                      color: '#1a202c' // Dark text for x-axis title
                                 },
                                 ticks: {
-                                    color: '#4a5568' // Gray text for x-axis ticks
+                                    color: '#4a5568', // Gray text for x-axis ticks
+                                     maxRotation: 45, // Rotate labels up to 45 degrees
+                                     minRotation: 45, // Ensure labels are rotated by at least 45 degrees
+                                     autoSkip: true, // Allow Chart.js to automatically skip ticks
+                                     // Adjust maxTicksLimit for 7D (hourly) to show fewer labels
+                                     maxTicksLimit: timeUnit === 'minute' ? 12 : (timeUnit === 'hour' ? 15 : 10) // Limit number of ticks based on time unit
                                 }
                             },
                             y: {
@@ -321,19 +682,47 @@
             }
         }
 
+         // --- Currency Converter Logic ---
+
+         // Event listeners for converter inputs and selects
+         document.getElementById('amount1').addEventListener('input', performConversion);
+         document.getElementById('amount2').addEventListener('input', performConversion); // Add listener to the second input
+         document.getElementById('currency1').addEventListener('change', performConversion);
+         document.getElementById('currency2').addEventListener('change', performConversion);
+
 
         // Fetch data and render chart immediately when the page loads
         fetchBtcPriceAndChange();
         fetchAndRenderChart();
+        populateConverterCurrencies(); // Populate converter dropdowns on load
+
 
         // Fetch the price and change every 30 seconds
         setInterval(fetchBtcPriceAndChange, 30000);
 
-        // Add event listener to the currency select dropdown
+        // Add event listener to the main currency select dropdown
         document.getElementById('currency-select').addEventListener('change', () => {
             fetchBtcPriceAndChange(); // Update price and change
             fetchAndRenderChart(); // Update chart
+            // Also update the second currency in the converter to match the main selection
+            document.getElementById('currency2').value = document.getElementById('currency-select').value;
+            performConversion(); // Perform conversion with the new currency
         });
+
+        // Add event listeners to the time range buttons
+        document.querySelectorAll('.time-range-button').forEach(button => {
+            button.addEventListener('click', () => {
+                // Remove 'active' class from all buttons
+                document.querySelectorAll('.time-range-button').forEach(btn => btn.classList.remove('active'));
+                // Add 'active' class to the clicked button
+                button.classList.add('active');
+                // Update the selected time range
+                selectedTimeRange = button.dataset.range;
+                // Fetch and render the chart for the new time range
+                fetchAndRenderChart();
+            });
+        });
+
 
          // Add a resize observer to make the chart responsive
          const resizeObserver = new ResizeObserver(() => {
