@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live BTC Price and Chart</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Custom style for centering content vertically and horizontally */
+        body {
+            display: flex;
+            flex-direction: column; /* Stack elements vertically */
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #ffffff; /* White background */
+            color: #1a202c; /* Dark text for readability on white */
+            font-family: 'Inter', sans-serif; /* Use Inter font */
+            padding: 20px; /* Add some padding around content */
+            box-sizing: border-box; /* Include padding in element's total width and height */
+        }
+
+        .container {
+            text-align: center;
+            width: 100%; /* Make container take full width */
+            max-width: 800px; /* Limit max width for better readability on large screens */
+            margin-bottom: 20px; /* Add space below the main price section */
+        }
+
+        /* Style for positive percentage change and amount */
+        .text-green-500 {
+            color: #10b981; /* Adjusted green for better contrast on white */
+        }
+
+        /* Style for negative percentage change and amount */
+        .text-red-500 {
+            color: #ef4444;
+        }
+
+        /* Style for the currency select dropdown */
+        #currency-select {
+            background-color: #e2e8f0; /* Light gray background for contrast */
+            color: #1a202c; /* Dark text */
+            border: 1px solid #718096; /* Darker gray border */
+            border-radius: 0.25rem; /* Rounded corners */
+            padding: 0.5rem;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+
+        /* Style for the chart container */
+        #chart-container {
+            width: 100%;
+            max-width: 800px; /* Match container max-width */
+            margin: 20px auto; /* Center the chart and add margin */
+            background-color: #f7fafc; /* Light background for chart area */
+            border-radius: 0.5rem; /* Rounded corners for chart container */
+            padding: 15px; /* Padding inside chart container */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+        }
+
+         /* Ensure canvas is responsive */
+        #btcChart {
+            width: 100% !important;
+            height: auto !important;
+        }
+    </style>
+</head>
+<body class="bg-white text-gray-900 font-sans">
+
+    <div class="container">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/4/46/Bitcoin.svg" alt="Bitcoin Logo" class="mx-auto h-24 w-24 mb-4">
+
+        <h1 class="text-2xl md:text-3xl font-bold mb-4 text-gray-900">Current Bitcoin (BTC) Price</h1>
+
+        <select id="currency-select" class="mb-4">
+            <option value="USD">USD</option>
+            <option value="EUR">EUR</option>
+            <option value="GBP">GBP</option>
+            <option value="JPY">JPY</option>
+            <option value="CAD">CAD</option>
+            <option value="AUD">AUD</option>
+            <option value="CHF">CHF</option>
+            <option value="CNY">CNY</option>
+            <option value="INR">INR</option>
+            <option value="BRL">BRL</option>
+            </select>
+
+        <div id="btc-price" class="text-6xl md:text-8xl lg:text-9xl font-extrabold text-green-500 mb-2">
+            Loading...
+        </div>
+        <div id="btc-change" class="text-xl md:text-2xl font-semibold">
+            Loading change...
+        </div>
+        <p class="mt-4 text-sm text-gray-600">Price and 24h change updates every 30 seconds (via CryptoCompare API)</p>
+    </div>
+
+    <div id="chart-container">
+        <canvas id="btcChart"></canvas>
+    </div>
+
+
+    <script>
+        // Mapping of currency codes to symbols for display
+        const currencySymbols = {
+            USD: '$',
+            EUR: '€',
+            GBP: '£',
+            JPY: '¥',
+            CAD: '$',
+            AUD: '$',
+            CHF: 'CHF ', // CHF symbol often placed before the amount
+            CNY: '¥',
+            INR: '₹',
+            BRL: 'R$',
+            // Add more currency symbols as needed
+        };
+
+        let btcChartInstance = null; // Variable to hold the chart instance
+
+        // Function to fetch and display the BTC price and 24h change for the selected currency
+        async function fetchBtcPriceAndChange() {
+            const priceElement = document.getElementById('btc-price');
+            const changeElement = document.getElementById('btc-change');
+            const currencySelect = document.getElementById('currency-select');
+            const selectedCurrency = currencySelect.value;
+            const currencySymbol = currencySymbols[selectedCurrency] || ''; // Get symbol or use empty string
+
+            // Using CryptoCompare API endpoint for multiple symbols full data
+            // fsyms=BTC is the base cryptocurrency
+            // tsyms=${selectedCurrency} is the target fiat currency
+            const apiUrl = `https://min-api.cryptocompare.com/data/pricemultifull?fsyms=BTC&tsyms=${selectedCurrency}`;
+
+            try {
+                // Fetch data from the CryptoCompare API
+                const response = await fetch(apiUrl);
+
+                // Check if the request was successful
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                // Parse the JSON response
+                const data = await response.json();
+
+                // Check if data is available for BTC and the selected currency
+                // CryptoCompare nests data under 'RAW' and then the symbols
+                if (!data.RAW || !data.RAW.BTC || !data.RAW.BTC[selectedCurrency]) {
+                     throw new Error(`Could not retrieve data for BTC in ${selectedCurrency}`);
+                }
+
+                // Extract the latest price, 24h price change amount, and 24h price change percentage
+                const btcData = data.RAW.BTC[selectedCurrency];
+                const btcPrice = btcData.PRICE;
+                const priceChange = btcData.CHANGE24HOUR;
+                const priceChangePercent = btcData.CHANGEPCT24HOUR;
+
+
+                // Format the price with the correct currency symbol
+                const formattedPrice = `${currencySymbol}${btcPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+                // Format the percentage change
+                const formattedChangePercent = `${priceChangePercent !== undefined ? priceChangePercent.toFixed(2) : 'N/A'}%`;
+
+                // Format the price change amount with the correct currency symbol and handle the sign
+                 const formattedChangeAmount = priceChange !== undefined ?
+                    `${priceChange >= 0 ? '+' : ''}${currencySymbol}${Math.abs(priceChange).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` :
+                    'N/A';
+
+
+                // Combine the formatted change percentage and amount, adding "24h"
+                const combinedChangeText = `24h: ${formattedChangePercent} (${formattedChangeAmount})`;
+
+                // Update the content of the price element
+                priceElement.textContent = formattedPrice;
+
+                // Update the content and color of the change element based on the percentage (if available)
+                changeElement.textContent = combinedChangeText;
+                changeElement.classList.remove('text-green-500', 'text-red-500'); // Remove existing color classes
+
+                if (priceChangePercent !== undefined) {
+                    if (priceChangePercent >= 0) {
+                        changeElement.classList.add('text-green-500'); // Green for positive or zero change
+                    } else {
+                        changeElement.classList.add('text-red-500'); // Red for negative change
+                    }
+                } else {
+                     // If change data is not available, potentially set a default color or no color
+                     // For now, we'll leave it as the default text color
+                }
+
+
+                // Ensure price text color is green if it was previously red due to an error
+                 if (priceElement.classList.contains('text-red-500')) {
+                    priceElement.classList.remove('text-red-500');
+                    priceElement.classList.add('text-green-500'); // Changed to green-500 for better contrast on white
+                }
+
+
+            } catch (error) {
+                // Log any errors and display an error message
+                console.error("Error fetching BTC price and change:", error);
+                priceElement.textContent = "Error loading price";
+                changeElement.textContent = "Error loading change";
+                 // Change text color to red on error for both elements
+                priceElement.classList.remove('text-green-500'); // Changed from green-400
+                priceElement.classList.add('text-red-500');
+                changeElement.classList.remove('text-green-500');
+                changeElement.classList.add('text-red-500');
+            }
+        }
+
+        // Function to fetch and render the 1-hour chart
+        async function fetchAndRenderChart() {
+            const currencySelect = document.getElementById('currency-select');
+            const selectedCurrency = currencySelect.value;
+            const chartCanvas = document.getElementById('btcChart');
+            const chartContext = chartCanvas.getContext('2d');
+
+            // Destroy existing chart instance if it exists
+            if (btcChartInstance) {
+                btcChartInstance.destroy();
+            }
+
+            // CryptoCompare API endpoint for historical hourly data
+            // Fetching 168 data points (7 days * 24 hours) for a good overview
+            const apiUrl = `https://min-api.cryptocompare.com/data/v2/histohour?fsym=BTC&tsym=${selectedCurrency}&limit=168&aggregate=1`;
+
+            try {
+                const response = await fetch(apiUrl);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                // Check if data is available
+                if (!data.Data || !data.Data.Data || data.Data.Data.length === 0) {
+                    throw new Error(`No historical data available for BTC in ${selectedCurrency}`);
+                }
+
+                // Process the historical data
+                const chartLabels = [];
+                const chartData = [];
+
+                data.Data.Data.forEach(hourData => {
+                    // Use the timestamp for the label (convert to readable format)
+                    const date = new Date(hourData.time * 1000); // Convert seconds to milliseconds
+                    chartLabels.push(date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })); // Format time
+
+                    // Use the closing price for the data point
+                    chartData.push(hourData.close);
+                });
+
+                // Create the chart
+                btcChartInstance = new Chart(chartContext, {
+                    type: 'line', // Line chart for price over time
+                    data: {
+                        labels: chartLabels,
+                        datasets: [{
+                            label: `BTC Price (${selectedCurrency})`,
+                            data: chartData,
+                            borderColor: '#34d399', // Green color for the line
+                            backgroundColor: 'rgba(52, 211, 153, 0.2)', // Light green fill below the line
+                            tension: 0.1, // Slightly curved line
+                            pointRadius: 0, // Hide data points
+                            fill: true, // Fill area below the line
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false, // Allow chart to resize freely
+                         plugins: {
+                            legend: {
+                                display: true,
+                                labels: {
+                                    color: '#1a202c' // Dark text for legend
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                display: true,
+                                title: {
+                                    display: true,
+                                    text: 'Time (Hourly)',
+                                     color: '#1a202c' // Dark text for x-axis title
+                                },
+                                ticks: {
+                                    color: '#4a5568' // Gray text for x-axis ticks
+                                }
+                            },
+                            y: {
+                                display: true,
+                                title: {
+                                    display: true,
+                                    text: `Price (${selectedCurrency})`,
+                                     color: '#1a202c' // Dark text for y-axis title
+                                },
+                                ticks: {
+                                     color: '#4a5568' // Gray text for y-axis ticks
+                                }
+                            }
+                        }
+                    }
+                });
+
+            } catch (error) {
+                console.error("Error fetching historical data or rendering chart:", error);
+                // Optionally display an error message in the chart area
+                 if (btcChartInstance) {
+                     btcChartInstance.destroy(); // Destroy any incomplete chart
+                 }
+                 chartContext.clearRect(0, 0, chartCanvas.width, chartCanvas.height); // Clear canvas
+                 chartContext.fillStyle = '#ef4444'; // Red color for error text
+                 chartContext.font = '1rem Inter, sans-serif';
+                 chartContext.textAlign = 'center';
+                 chartContext.fillText('Error loading chart data', chartCanvas.width / 2, chartCanvas.height / 2);
+            }
+        }
+
+
+        // Fetch data and render chart immediately when the page loads
+        fetchBtcPriceAndChange();
+        fetchAndRenderChart();
+
+        // Fetch the price and change every 30 seconds
+        setInterval(fetchBtcPriceAndChange, 30000);
+
+        // Add event listener to the currency select dropdown
+        document.getElementById('currency-select').addEventListener('change', () => {
+            fetchBtcPriceAndChange(); // Update price and change
+            fetchAndRenderChart(); // Update chart
+        });
+
+         // Add a resize observer to make the chart responsive
+         const resizeObserver = new ResizeObserver(() => {
+             if (btcChartInstance) {
+                 btcChartInstance.resize();
+             }
+         });
+
+         const chartContainer = document.getElementById('chart-container');
+         resizeObserver.observe(chartContainer);
+
+    </script>
+
+</body>
+</html>
