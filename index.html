@@ -6,6 +6,7 @@
     <title>Live BTC Price and Chart</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-crosshair@latest/dist/chartjs-plugin-crosshair.min.js"></script>
     <style>
         /* Custom style for centering content vertically and horizontally */
         body {
@@ -167,7 +168,7 @@
             <option value="CAD">CAD</option>
             <option value="AUD">AUD</option>
             <option value="CHF">CHF</option>
-            <option value="CNY">CNY</option>
+            <option value="CNY">CNY</n>
             <option value="INR">INR</option>
             <option value="BRL">BRL</option>
             </select>
@@ -182,7 +183,7 @@
     </div>
 
     <div class="time-range-buttons">
-        <button class="time-range-button active" data-range="1D">1D</button>
+        <button class="time-range-button" data-range="1H">1H</button> <button class="time-range-button" data-range="4H">4H</button> <button class="time-range-button active" data-range="1D">1D</button>
         <button class="time-range-button" data-range="7D">7D</button>
         <button class="time-range-button" data-range="1M">1M</button>
         <button class="time-range-button" data-range="6M">6M</button>
@@ -496,6 +497,20 @@
 
             // Determine API endpoint, limit, and time unit based on selected time range
             switch (selectedTimeRange) {
+                case '1H': // Added 1 Hour case
+                    apiUrl = `https://min-api.cryptocompare.com/data/v2/histominute?fsym=BTC&tsym=${selectedCurrency}`;
+                    limit = 60; // 60 minutes for 1 hour
+                    timeUnit = 'minute';
+                    labelFormat = { hour: '2-digit', minute: '2-digit', hour12: true };
+                    chartTitle = `BTC Price (${selectedCurrency}) - Last 1 Hour (Minute Data)`;
+                    break;
+                case '4H': // Added 4 Hour case
+                    apiUrl = `https://min-api.cryptocompare.com/data/v2/histominute?fsym=BTC&tsym=${selectedCurrency}`;
+                    limit = 240; // 240 minutes for 4 hours (4 * 60)
+                    timeUnit = 'minute';
+                    labelFormat = { hour: '2-digit', minute: '2-digit', hour12: true };
+                    chartTitle = `BTC Price (${selectedCurrency}) - Last 4 Hours (Minute Data)`;
+                    break;
                 case '1D':
                     // Fetch minute data for the last 24 hours (1440 minutes)
                     apiUrl = `https://min-api.cryptocompare.com/data/v2/histominute?fsym=BTC&tsym=${selectedCurrency}`;
@@ -634,7 +649,97 @@
                                 labels: {
                                     color: '#1a202c' // Dark text for legend
                                 }
+                            },
+                            tooltip: { // Enable and configure tooltips
+                                enabled: true,
+                                mode: 'index',
+                                intersect: false,
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        // Add currency symbol and formatted value
+                                        const value = context.parsed.y; // Get the y-value (price)
+                                        const currency = document.getElementById('currency-select').value;
+                                        const symbol = currencySymbols[currency] || '';
+                                         // Format the value with appropriate decimal places
+                                        const formattedValue = value.toLocaleString('en-US', {
+                                            minimumFractionDigits: currency === 'BTC' ? 8 : 2, // More digits for BTC
+                                            maximumFractionDigits: currency === 'BTC' ? 8 : 2,
+                                        });
+                                        label += `${symbol}${formattedValue}`;
+                                        return label;
+                                    },
+                                    title: function(context) {
+                                        // Display the time/date as the tooltip title
+                                        // Use the timestamp from the original data point, not parsed.x
+                                        // This is a potential fix if parsed.x is not the original timestamp
+                                        const dataIndex = context[0].dataIndex;
+                                        const originalTimestamp = data.Data.Data[dataIndex].time; // Access original timestamp
+                                        const date = new Date(originalTimestamp * 1000); // Convert seconds to milliseconds
+
+
+                                        // Log timestamp and date object for debugging
+                                        // console.log("Tooltip Timestamp (from original data):", originalTimestamp);
+                                        // console.log("Tooltip Date object (from original data):", date);
+                                        // console.log("Tooltip Date object getTime():", date.getTime());
+                                        // console.log("Tooltip Date object getHours():", date.getHours());
+                                        // console.log("Tooltip Date object getMinutes():", date.getMinutes());
+
+
+                                         if (timeUnit === 'minute' || timeUnit === 'hour') {
+                                             // Explicitly use hour12: true for AM/PM format
+                                             const options = { hour: '2-digit', minute: '2-digit', hour12: true };
+                                              if (timeUnit === 'hour') { // Add day for hourly data (7D, 1M)
+                                                 options.day = 'numeric';
+                                                 // Add month for 1M hourly data
+                                                  if (selectedTimeRange === '1M') {
+                                                     options.month = 'short';
+                                                  }
+                                              }
+                                              const formattedTime = date.toLocaleTimeString('en-US', options);
+                                              // console.log("Formatted Time (toLocaleTimeString):", formattedTime);
+
+                                              // Manual formatting for comparison
+                                              const hours = date.getHours();
+                                              const minutes = date.getMinutes();
+                                              const ampm = hours >= 12 ? 'PM' : 'AM';
+                                              const formattedHours = hours % 12 === 0 ? 12 : hours % 12;
+                                              const formattedMinutes = minutes < 10 ? '0' + minutes : minutes;
+                                              const manualTime = `${formattedHours}:${formattedMinutes} ${ampm}`;
+                                              // console.log("Formatted Time (Manual):", manualTime);
+
+
+                                             return formattedTime;
+                                         } else {
+                                             const formattedDate = date.toLocaleDateString('en-US', labelFormat);
+                                             // console.log("Formatted Date (toLocaleDateString):", formattedDate);
+                                             return formattedDate;
+                                         }
+                                    }
+                                }
+                            },
+                             // Configure the crosshair plugin
+                            crosshair: {
+                                line: {
+                                    color: '#718096', // Color of the crosshair line (gray)
+                                    width: 1 // Width of the crosshair line
+                                },
+                                sync: {
+                                    enabled: false // Disable syncing with other charts if any
+                                },
+                                zoom: {
+                                    enabled: false // Disable zooming with crosshair
+                                }
                             }
+                        },
+                         // Moved hover configuration into interaction
+                        interaction: {
+                            mode: 'index',
+                            intersect: false,
+                            axis: 'x' // Draw a vertical line along the x-axis
                         },
                         scales: {
                             x: {
@@ -649,8 +754,8 @@
                                      maxRotation: 45, // Rotate labels up to 45 degrees
                                      minRotation: 45, // Ensure labels are rotated by at least 45 degrees
                                      autoSkip: true, // Allow Chart.js to automatically skip ticks
-                                     // Adjust maxTicksLimit for 7D (hourly) to show fewer labels
-                                     maxTicksLimit: timeUnit === 'minute' ? 12 : (timeUnit === 'hour' ? 15 : 10) // Limit number of ticks based on time unit
+                                     // Adjust maxTicksLimit for minute/hourly data to show fewer labels
+                                     maxTicksLimit: timeUnit === 'minute' ? 8 : (timeUnit === 'hour' ? 12 : 10) // Adjusted limits
                                 }
                             },
                             y: {
