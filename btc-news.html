@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bitcoin News - btc-price.com</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom style for body padding to account for fixed nav */
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            margin: 0; /* Remove default body margin */
+            background-color: #ffffff;
+            color: #1a202c;
+            padding-top: 4rem; /* Add padding at the top equal to nav height */
+            box-sizing: border-box;
+        }
+
+        /* Style for the navigation bar */
+        nav {
+            width: 100%; /* Full width */
+            background-color: #2d3748; /* Dark gray background */
+            padding: 0.75rem 20px; /* Reduced padding top/bottom and sides */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+            display: flex;
+            justify-content: center; /* Center navigation links */
+            flex-wrap: wrap; /* Allow links to wrap on smaller screens */
+            gap: 20px; /* Space between nav links */
+            position: fixed; /* Fix navigation bar at the top */
+            top: 0;
+            left: 0;
+            z-index: 10; /* Ensure nav is above other content */
+        }
+
+        nav a {
+            color: #e2e8f0; /* Light gray text */
+            text-decoration: none; /* No underline */
+            font-weight: bold;
+            font-size: 1.05rem; /* Slightly larger font size for nav links */
+            transition: color 0.2s ease-in-out;
+        }
+
+        nav a:hover {
+            color: #34d399; /* Green on hover */
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 20px auto; /* Add margin top/bottom and center horizontally */
+            padding: 20px;
+            background-color: #f7fafc;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1, h2 {
+            color: #2d3748;
+            margin-bottom: 15px;
+        }
+        h1 {
+            text-align: center; /* Center the main heading */
+            margin-top: 20px; /* Space above the main heading */
+             margin-bottom: 0; /* Remove bottom margin from h1 */
+             font-size: 2.2rem; /* Slightly larger main heading */
+             /* Font weight is now handled by Tailwind class */
+        }
+        h2 {
+             margin-top: 30px; /* Increased space above news titles */
+             margin-bottom: 10px; /* Space below news title */
+             border-bottom: none; /* Remove border below news titles */
+             padding-bottom: 0; /* Remove padding below news titles */
+             font-size: 1.5rem; /* Larger font size for news titles */
+        }
+        p {
+            margin-bottom: 15px; /* Space below news paragraphs */
+        }
+         ul {
+             margin-bottom: 45px; /* Increased space below lists (if any) */
+             padding-left: 20px;
+         }
+         li {
+             margin-bottom: 15px; /* Increased space between list items (if any) */
+         }
+         strong {
+             color: #2d3748; /* Darker color for strong text */
+         }
+        a {
+            color: #3b82f6;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        img {
+            max-width: 100%; /* Ensure images are responsive */
+            height: auto;
+            border-radius: 0.5rem; /* Rounded corners for images */
+            margin: 20px 0; /* Space above and below images */
+            display: block; /* Make image a block element to center */
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+         .back-to-home {
+             display: block; /* Make the link a block element */
+             text-align: center; /* Center the link */
+             margin-top: 60px; /* Increased space above the link */
+             font-size: 1.1rem;
+             font-weight: bold;
+         }
+
+         /* Specific styles for news articles */
+         .news-article {
+             margin-bottom: 40px; /* Space between news articles */
+             padding-bottom: 20px; /* Padding at the bottom of each article */
+             border-bottom: 1px dashed #d1d5db; /* Dashed line to separate articles */
+         }
+
+         .news-article:last-child {
+             border-bottom: none; /* No border after the last article */
+             margin-bottom: 30px; /* Less margin for the last article before back to home */
+         }
+
+         /* Style for the separator div */
+         .heading-separator {
+             height: 1px; /* Thin line */
+             background-color: #d1d5db; /* Light gray color */
+             margin: 30px auto; /* Space above and below the separator, center it */
+             width: 80%; /* Make the line a bit shorter than the container */
+         }
+
+
+    </style>
+</head>
+<body>
+
+    <nav>
+        <a href="index.html#price-chart">Price & Chart</a>
+        <a href="index.html#converter">Converter</a>
+        <a href="index.html#merch-section">Merch</a>
+        <a href="index.html#donation-section">Support Us</a>
+        <a href="what-is-bitcoin.html">What is Bitcoin?</a>
+        <a href="how-to-buy-btc.html">How to Buy BTC</a>
+        <a href="#top">BTC News</a> <a href="contact.html">Contact</a> </nav>
+
+    <div class="container" id="top">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/4/46/Bitcoin.svg" alt="Bitcoin Logo" class="mx-auto h-24 w-24 mb-4">
+
+        <h1 class="font-bold">Latest Bitcoin News</h1>
+
+        <div class="heading-separator"></div>
+
+
+        <div class="news-article">
+            <h2>Spot Bitcoin ETFs Approved in the United States, Driving Institutional Interest</h2>
+            <p>January 2025 marked a significant milestone for Bitcoin with the U.S. Securities and Exchange Commission (SEC) approving several spot Bitcoin Exchange-Traded Funds (ETFs). This decision opened the door for traditional investors to gain exposure to Bitcoin through regulated investment products, leading to substantial inflows and contributing to price rallies.</p>
+        </div>
+
+        <div class="news-article">
+            <h2>Bitcoin Reaches New All-Time Highs in Early 2025</h2>
+            <p>Fueled by the excitement around ETF approvals and increasing market optimism, Bitcoin's price surged to new all-time highs in the first few months of 2025. The rallies demonstrated strong demand and renewed confidence in Bitcoin as a digital asset.</p>
+        </div>
+
+         <div class="news-article">
+            <h2>Regulatory Landscape for Cryptocurrencies Continues to Evolve Globally</h2>
+            <p>Governments and regulatory bodies around the world continued to work on frameworks for cryptocurrencies. Developments ranged from clearer guidelines for exchanges and digital asset businesses to discussions around consumer protection and taxation. The evolving regulatory environment remains a key factor influencing the crypto market.</p>
+        </div>
+
+        <div class="news-article">
+            <h2>Debate Continues on Bitcoin's Environmental Impact and Energy Consumption</h2>
+            <p>Discussions surrounding the energy consumption of Bitcoin mining remained prominent throughout the year. While advancements in mining technology and the increasing use of renewable energy sources are being explored, the topic continues to be a point of debate and focus for the industry and regulators.</p>
+        </div>
+
+        <div class="news-article">
+            <h2>Bitcoin Halving Successfully Completed, Eyes on Price Impact</h2>
+            <p>The fourth Bitcoin halving event, reducing the reward for mining new blocks, was successfully completed in April 2024. The halving is a key programmed event that reduces the supply of new Bitcoin entering the market, and the crypto community is closely watching its potential long-term effects on price and mining dynamics.</p>
+        </div>
+
+
+        <a href="index.html" class="back-to-home">Back to Home</a>
+    </div>
+
+</body>
+</html>
