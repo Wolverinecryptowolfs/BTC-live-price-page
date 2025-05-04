@@ -168,6 +168,62 @@
              font-weight: bold;
              margin: 10px 0;
          }
+
+         /* Style for the footer */
+         footer {
+             margin-top: 40px; /* Space above the footer */
+             padding-top: 20px;
+             border-top: 1px solid #e2e8f0; /* Light line above footer */
+             width: 100%;
+             text-align: center;
+             color: #4a5568; /* Gray text for footer */
+             font-size: 0.9rem;
+         }
+
+         footer a {
+             color: #3b82f6; /* Blue links */
+             text-decoration: none; /* No underline by default */
+             margin: 0 10px; /* Space between links */
+         }
+
+         footer a:hover {
+             text-decoration: underline; /* Underline on hover */
+         }
+
+         footer p {
+             margin-top: 10px; /* Space above the copyright */
+             margin-bottom: 0; /* Remove default bottom margin */
+         }
+
+        /* Style for the donation section */
+        .donation-section {
+            margin-top: 30px; /* Space above the donation section */
+            padding: 20px;
+            background-color: #e2e8f0; /* Light gray background */
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px; /* Match converter width */
+            text-align: center;
+        }
+
+        .donation-section h2 {
+            color: #2d3748; /* Dark gray heading */
+            margin-bottom: 10px;
+        }
+
+        .donation-section p {
+            margin-bottom: 15px;
+            color: #4a5568; /* Gray text */
+        }
+
+        .donation-section .wallet-address {
+            font-weight: bold;
+            color: #1a202c; /* Dark text for address */
+            word-break: break-all; /* Break long addresses */
+        }
+
+
     </style>
 </head>
 <body class="bg-white text-gray-900 font-sans">
@@ -227,6 +283,20 @@
                  </select>
         </div>
     </div>
+
+    <div class="donation-section">
+        <h2 class="text-xl font-bold">Support Us</h2>
+        <p>If you find this free service helpful and would like to support its operation, consider making a small donation. Your contribution helps keep the site running and free for everyone.</p>
+        <p>Solana Wallet Address:</p>
+        <p class="wallet-address">HNFyj7SnT4wHNyuARgMRbBC9DSUcD5fRAcDXtdhARd6P</p>
+    </div>
+
+
+    <footer>
+        <a href="imprint.html">Imprint</a> |
+        <a href="privacy.html">Privacy Policy</a>
+        <p>&copy; 2025 btc-price.com</p>
+    </footer>
 
 
     <script>
