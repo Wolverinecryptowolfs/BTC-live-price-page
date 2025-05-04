@@ -61,7 +61,8 @@
         h1 {
             text-align: center; /* Center the main heading */
             margin-top: 20px; /* Space above the main heading */
-             margin-bottom: 80px; /* Increased space below the main heading */
+             margin-bottom: 0; /* Remove bottom margin from h1 */
+             /* Font weight is now handled by Tailwind class */
         }
         h2 {
              margin-top: 90px; /* Increased space above subheadings */
@@ -107,6 +108,14 @@
              font-weight: bold;
          }
 
+         /* Style for the separator div */
+         .heading-separator {
+             height: 1px; /* Thin line */
+             background-color: #d1d5db; /* Light gray color */
+             margin: 30px auto; /* Space above and below the separator, center it */
+             width: 80%; /* Make the line a bit shorter than the container */
+         }
+
     </style>
 </head>
 <body>
@@ -122,7 +131,9 @@
     <div class="container" id="top">
         <img src="https://upload.wikimedia.org/wikipedia/commons/4/46/Bitcoin.svg" alt="Bitcoin Logo" class="mx-auto h-24 w-24 mb-4">
 
-        <h1>How to Buy Bitcoin: A Simple Guide</h1>
+        <h1 class="font-bold">How to Buy Bitcoin: A Simple Guide</h1>
+
+        <div class="heading-separator"></div>
 
         <p>Buying Bitcoin might seem complicated at first, but with the right information, it's a straightforward process. This guide will walk you through the basic steps to acquire your first Bitcoin.</p>
 
