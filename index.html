@@ -8,7 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-crosshair@latest/dist/chartjs-plugin-crosshair.min.js"></script>
     <style>
-        /* Custom style for centering content vertically and horizontally */
+        /* Custom style for body padding to account for fixed nav */
         body {
             display: flex;
             flex-direction: column; /* Stack elements vertically */
@@ -19,6 +19,9 @@
             font-family: 'Inter', sans-serif; /* Use Inter font */
             padding: 0; /* Remove default body padding */
             box-sizing: border-box; /* Include padding in element's total width and height */
+            padding-top: 4rem; /* Add padding at the top equal to nav height */
+            /* Custom cursor using the provided Bitcoin image URL */
+            cursor: url('https://cdn.pixabay.com/photo/2021/04/30/16/47/bitcoin-logo-6219385_1280.png'), auto;
         }
 
         /* Style for the navigation bar */
@@ -29,21 +32,61 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
             display: flex;
             justify-content: center; /* Center navigation links */
-            flex-wrap: wrap; /* Allow links to wrap on smaller screens */
+            flex-wrap: nowrap; /* Prevent wrapping on smaller screens */
             gap: 20px; /* Space between nav links */
+            position: fixed; /* Fix navigation bar at the top */
+            top: 0;
+            left: 0;
+            z-index: 10; /* Ensure nav is above other content */
+            overflow-x: auto; /* Allow horizontal scrolling if content overflows */
+            -webkit-overflow-scrolling: touch; /* Improve scrolling on iOS */
+             scrollbar-width: none; /* Hide scrollbar for Firefox */
         }
+
+         /* Hide scrollbar for Chrome, Edge, and Safari */
+         nav::-webkit-scrollbar {
+             display: none;
+         }
+
 
         nav a {
             color: #e2e8f0; /* Light gray text */
             text-decoration: none; /* No underline */
             font-weight: bold;
-            font-size: 1rem;
+            font-size: 1rem; /* Default font size */
             transition: color 0.2s ease-in-out;
+             flex-shrink: 0; /* Prevent links from shrinking */
         }
 
         nav a:hover {
             color: #34d399; /* Green on hover */
         }
+
+        /* Style for the active navigation link */
+        nav a.active-nav-link {
+            color: #34d399; /* Green color for the active link */
+        }
+
+        /* Style for the separator */
+        nav span.separator {
+            color: #e2e8f0; /* Light gray color for the separator */
+            font-size: 1rem;
+            font-weight: bold;
+             flex-shrink: 0; /* Prevent separator from shrinking */
+        }
+
+         /* Media query to reduce font size on smaller screens */
+         @media (max-width: 640px) { /* Tailwind's sm breakpoint */
+             nav a,
+             nav span.separator {
+                 font-size: 0.9rem; /* Slightly smaller font size */
+             }
+             nav {
+                 gap: 15px; /* Reduce gap slightly */
+                 padding: 0.75rem 10px; /* Adjust padding */
+             }
+         }
+
 
         .container {
             text-align: center;
@@ -84,17 +127,17 @@
             width: 100%;
             max-width: 800px; /* Limit max width for better readability on large screens */
             margin: 20px auto; /* Center the chart and add margin */
-            background-color: #f7fafc; /* Light background for chart area */
-            border-radius: 0.5rem; /* Rounded corners for chart container */
-            padding: 15px; /* Padding inside chart container */
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+            background-color: #f7fafc;
+            border-radius: 0.5rem;
+            padding: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
          /* Media query to remove max-width on smaller screens */
          @media (max-width: 768px) { /* Adjust breakpoint as needed */
              #chart-container {
-                 max-width: none; /* Remove max-width on smaller screens */
-                 padding: 10px; /* Adjust padding for smaller screens */
+                 max-width: none;
+                 padding: 10px;
              }
          }
 
@@ -108,7 +151,7 @@
          /* Media query to set max-height on smaller screens */
          @media (max-width: 768px) {
              #btcChart {
-                 max-height: 1600px; /* Increased maximum height for the chart on mobile */
+                 max-height: 1600px;
              }
          }
 
@@ -118,40 +161,40 @@
             margin-bottom: 15px;
             display: flex;
             justify-content: center;
-            flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
-            gap: 10px; /* Space between buttons */
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .time-range-button {
             padding: 8px 12px;
-            border: 1px solid #d1d5db; /* Light gray border */
+            border: 1px solid #d1d5db;
             border-radius: 0.25rem;
-            background-color: #f3f4f6; /* Very light gray background */
-            color: #1f2937; /* Dark gray text */
+            background-color: #f3f4f6;
+            color: #1f2937;
             cursor: pointer;
             font-size: 0.9rem;
             transition: all 0.2s ease-in-out;
         }
 
         .time-range-button:hover {
-            background-color: #e5e7eb; /* Slightly darker gray on hover */
+            background-color: #e5e7eb;
         }
 
         .time-range-button.active {
-            background-color: #3b82f6; /* Blue background for active button */
-            color: #ffffff; /* White text for active button */
+            background-color: #3b82f6;
+            color: #ffffff;
             border-color: #3b82f6;
         }
 
         /* Style for the currency converter section */
         .currency-converter {
-            margin-top: 30px; /* Add space above the converter */
+            margin-top: 30px;
             padding: 20px;
-            background-color: #f7fafc; /* Light background */
+            background-color: #f7fafc;
             border-radius: 0.5rem;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             width: 100%;
-            max-width: 500px; /* Limit converter width */
+            max-width: 500px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -162,12 +205,12 @@
             align-items: center;
             gap: 10px;
             margin-bottom: 15px;
-            width: 100%; /* Make input group take full width */
+            width: 100%;
         }
 
         .converter-input-group input[type="number"],
-        .converter-input-group input[type="text"] { /* Include text type for styling */
-            flex-grow: 1; /* Allow input to take available space */
+        .converter-input-group input[type="text"] {
+            flex-grow: 1;
             padding: 0.5rem;
             border: 1px solid #d1d5db;
             border-radius: 0.25rem;
@@ -177,14 +220,14 @@
         }
 
          .converter-input-group input[type="number"]:focus,
-         .converter-input-group input[type="text"]:focus { /* Include text type for styling */
+         .converter-input-group input[type="text"]:focus {
              outline: none;
-             border-color: #3b82f6; /* Highlight on focus */
+             border-color: #3b82f6;
              box-shadow: 0 0 0 1px #3b82f6;
          }
 
         .converter-select {
-             flex-shrink: 0; /* Prevent select from shrinking */
+             flex-shrink: 0;
         }
 
          .converter-equals {
@@ -195,72 +238,44 @@
 
          /* Style for the footer */
          footer {
-             margin-top: 40px; /* Space above the footer */
+             margin-top: 40px;
              padding-top: 20px;
-             border-top: 1px solid #e2e8f0; /* Light line above footer */
+             border-top: 1px solid #e2e8f0;
              width: 100%;
              text-align: center;
-             color: #4a5568; /* Gray text for footer */
+             color: #4a5568;
              font-size: 0.9rem;
          }
 
          footer a {
-             color: #3b82f6; /* Blue links */
-             text-decoration: none; /* No underline by default */
-             margin: 0 10px; /* Space between links */
+             color: #3b82f6;
+             text-decoration: none;
+             margin: 0 10px;
          }
 
          footer a:hover {
-             text-decoration: underline; /* Underline on hover */
+             text-decoration: underline;
          }
 
          footer p {
-             margin-top: 10px; /* Space above the copyright */
-             margin-bottom: 0; /* Remove default bottom margin */
+             margin-top: 10px;
+             margin-bottom: 0;
          }
-
-        /* Style for the donation section */
-        .donation-section {
-            margin-top: 30px; /* Space above the donation section */
-            padding: 20px;
-            background-color: #e2e8f0; /* Light gray background */
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 500px; /* Match converter width */
-            text-align: center;
-        }
-
-        .donation-section h2 {
-            color: #2d3748; /* Dark gray heading */
-            margin-bottom: 10px;
-        }
-
-        .donation-section p {
-            margin-bottom: 15px;
-            color: #4a5568; /* Gray text */
-        }
-
-        .donation-section .wallet-address {
-            font-weight: bold;
-            color: #1a202c; /* Dark text for address */
-            word-break: break-all; /* Break long addresses */
-        }
 
         /* Style for the merchandise section */
         .merch-section {
-            margin-top: 40px; /* Space above the merch section */
+            margin-top: 40px;
             padding: 20px;
-            background-color: #f7fafc; /* Light background */
+            background-color: #f7fafc;
             border-radius: 0.5rem;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             width: 100%;
-            max-width: 800px; /* Match container width */
+            max-width: 800px;
             text-align: center;
         }
 
         .merch-section h2 {
-            color: #2d3748; /* Dark gray heading */
+            color: #2d3748;
             margin-bottom: 20px;
         }
 
@@ -268,7 +283,7 @@
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 20px; /* Space between merch items */
+            gap: 20px;
         }
 
         .merch-item {
@@ -276,7 +291,7 @@
             border-radius: 0.5rem;
             padding: 15px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-            width: 150px; /* Fixed width for demo items */
+            width: 150px;
             text-align: center;
         }
 
@@ -300,11 +315,11 @@
         }
 
          .merch-section .view-shop-button {
-             display: inline-block; /* Make the link a block element for padding/margin */
-             margin-top: 20px; /* Space above the button */
+             display: inline-block;
+             margin-top: 20px;
              padding: 10px 20px;
-             background-color: #3b82f6; /* Blue button */
-             color: #ffffff; /* White text */
+             background-color: #3b82f6;
+             color: #ffffff;
              border-radius: 0.25rem;
              text-decoration: none;
              font-weight: bold;
@@ -312,23 +327,26 @@
          }
 
          .merch-section .view-shop-button:hover {
-             background-color: #2563eb; /* Darker blue on hover */
+             background-color: #2563eb;
          }
 
 
     </style>
 </head>
-<body class="bg-white text-gray-900 font-sans">
+<body>
 
     <nav>
-        <a href="index.html">Price & Chart</a>
-        <a href="converter.html">Converter</a>
-        <a href="merch-section.html">Merch</a>
-        <a href="#donation-section">Support Us</a>
+        <a href="index.html#price-chart">Home</a>
+        <span class="separator">|</span>
+        <a href="index.html#converter">Converter</a>
+        <span class="separator">|</span>
+        <a href="index.html#merch-section">Merch</a>
+        <span class="separator">|</span>
         <a href="what-is-bitcoin.html">What is Bitcoin?</a>
+        <span class="separator">|</span>
         <a href="how-to-buy-btc.html">How to Buy BTC</a>
+        <span class="separator">|</span>
         <a href="btc-news.html">BTC News</a>
-        <a href="#contact">Contact</a>
     </nav>
 
     <div class="container" id="price-chart">
@@ -387,13 +405,6 @@
         </div>
     </div>
 
-    <div class="donation-section" id="donation-section">
-        <h2 class="text-xl font-bold">Support Us</h2>
-        <p>If you find this free service helpful and would like to support its operation, consider making a small donation. Your contribution helps keep the site running and free for everyone.</p>
-        <p>Solana Wallet Address:</p>
-        <p class="wallet-address">HNFyj7SnT4wHNyuARgMRbBC9DSUcD5fRAcDXtdhARd6P</p>
-    </div>
-
     <div class="merch-section" id="merch-section">
         <h2 class="text-xl font-bold">BTC Merchandise</h2>
         <p>Show your support for Bitcoin with our exclusive merchandise!</p>
@@ -409,9 +420,9 @@
                 <p>$15.00</p>
             </div>
             <div class="merch-item">
-                <img src="https://placehold.co/100x100/e2e8f0/1a202c?text=BTC+Sticker" alt="BTC Sticker Placeholder">
-                <h3>BTC Sticker Pack</h3>
-                <p>$5.00</p>
+                <img src="https://placehold.co/100x100/e2e8f0/1a202c?text=BTC+Cap" alt="BTC Cap Placeholder">
+                <h3>BTC Cap</h3>
+                <p>$20.00</p>
             </div>
         </div>
         <a href="#" class="view-shop-button">View Full Shop</a>
@@ -599,17 +610,21 @@
             // tsyms=${selectedCurrency} is the target fiat currency
             const apiUrl = `https://min-api.cryptocompare.com/data/pricemultifull?fsyms=BTC&tsyms=${selectedCurrency}`;
 
+            console.log("Fetching BTC price and change from:", apiUrl); // Log the API URL
+
             try {
                 // Fetch data from the CryptoCompare API
                 const response = await fetch(apiUrl);
 
-                // Check if the request was successful
+                console.log("Price API Response Status:", response.status); // Log the response status
+
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
-                // Parse the JSON response
                 const data = await response.json();
+
+                console.log("Price API Response Data:", data); // Log the full response data
 
                 // Check if data is available for BTC and the selected currency
                 // CryptoCompare nests data under 'RAW' and then the symbols
@@ -667,8 +682,11 @@
                     priceElement.classList.add('text-green-500'); // Changed to green-500 for better contrast on white
                 }
 
-                // Perform conversion after fetching the latest price
-                performConversion();
+                // Perform conversion AFTER fetching the latest price (Only if converter elements exist)
+                const amount1Input = document.getElementById('amount1');
+                if (amount1Input) { // Check if converter elements are present
+                    performConversion();
+                }
 
 
             } catch (error) {
@@ -682,10 +700,13 @@
                 changeElement.classList.remove('text-green-500');
                 changeElement.classList.add('text-red-500');
 
-                 // Also update converter to show error
-                 document.getElementById('amount2').value = "Error";
+                 // Also update converter to show error (Only if converter elements exist)
+                 const amount2Input = document.getElementById('amount2');
+                 if (amount2Input) { // Check if converter elements are present
+                     amount2Input.value = "Error";
+                 }
                  currentBtcPriceInSelectedFiat = 0; // Reset price on error
-                 performConversion(); // Attempt conversion with 0 price (will show loading/error)
+                 // No need to call performConversion here, as it will show error anyway.
             }
         }
 
@@ -700,6 +721,18 @@
             if (btcChartInstance) {
                 btcChartInstance.destroy();
             }
+
+            // Check if the selected currency is CNY, as chart data is not available for it
+            if (selectedCurrency === 'CNY') {
+                 console.warn("Chart data not available for CNY from the current API source.");
+                 chartContext.clearRect(0, 0, chartCanvas.width, chartCanvas.height); // Clear canvas
+                 chartContext.fillStyle = '#4a5568'; // Gray color for the message
+                 chartContext.font = '1rem Inter, sans-serif';
+                 chartContext.textAlign = 'center';
+                 chartContext.fillText('Chart data not available for CNY', chartCanvas.width / 2, chartCanvas.height / 2);
+                 return; // Exit the function
+            }
+
 
             let apiUrl = '';
             let timeUnit = '';
@@ -762,7 +795,7 @@
                  case '1Y':
                     // Fetch daily data for the last 365 days (approx 1 year)
                      apiUrl = `https://min-api.cryptocompare.com/data/v2/histoday?fsym=BTC&tsym=${selectedCurrency}`;
-                     limit = 365; // Fetch approximately 1 year of daily data
+                    limit = 365; // Fetch approximately 1 year of daily data
                     timeUnit = 'day';
                      labelFormat = { month: 'short', day: 'numeric', year: 'numeric' };
                      chartTitle = `BTC Price (${selectedCurrency}) - Last 1 Year (Daily Data)`;
@@ -787,15 +820,20 @@
             // Append the limit parameter to the API URL
             apiUrl += `&limit=${limit}`;
 
+            console.log("Fetching chart data from:", apiUrl); // Log the API URL
 
             try {
                 const response = await fetch(apiUrl);
+
+                console.log("Chart API Response Status:", response.status); // Log the response status
 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
                 const data = await response.json();
+
+                console.log("Chart API Response Data:", data); // Log the full response data
 
                 // Check if data is available
                 if (!data.Data || !data.Data.Data || data.Data.Data.length === 0) {
@@ -823,13 +861,6 @@
 
                 data.Data.Data.forEach(hourData => {
                     const date = new Date(hourData.time * 1000); // Convert seconds to milliseconds
-
-                    // Log raw timestamp and created Date object during data processing
-                    // console.log("Processing Data - Raw Timestamp:", hourData.time);
-                    // console.log("Processing Data - Date object:", date);
-                    // console.log("Processing Data - Date object getTime():", date.getTime());
-
-
                      if (timeUnit === 'minute' || timeUnit === 'hour') {
                          chartLabels.push(date.toLocaleTimeString('en-US', labelFormat)); // Format time for minute/hourly data in English
                      } else {
@@ -894,14 +925,6 @@
                                         const date = new Date(originalTimestamp * 1000); // Convert seconds to milliseconds
 
 
-                                        // Log timestamp and date object for debugging
-                                        // console.log("Tooltip Timestamp (from original data):", originalTimestamp);
-                                        // console.log("Tooltip Date object (from original data):", date);
-                                        // console.log("Tooltip Date object getTime():", date.getTime());
-                                        // console.log("Tooltip Date object getHours():", date.getHours());
-                                        // console.log("Tooltip Date object getMinutes():", date.getMinutes());
-
-
                                          if (timeUnit === 'minute' || timeUnit === 'hour') {
                                              // Explicitly use hour12: true for AM/PM format
                                              const options = { hour: '2-digit', minute: '2-digit', hour12: true };
@@ -913,22 +936,9 @@
                                                   }
                                               }
                                               const formattedTime = date.toLocaleTimeString('en-US', options);
-                                              // console.log("Formatted Time (toLocaleTimeString):", formattedTime);
-
-                                              // Manual formatting for comparison
-                                              const hours = date.getHours();
-                                              const minutes = date.getMinutes();
-                                              const ampm = hours >= 12 ? 'PM' : 'AM';
-                                              const formattedHours = hours % 12 === 0 ? 12 : hours % 12;
-                                              const formattedMinutes = minutes < 10 ? '0' + minutes : minutes;
-                                              const manualTime = `${formattedHours}:${formattedMinutes} ${ampm}`;
-                                              // console.log("Formatted Time (Manual):", manualTime);
-
-
                                              return formattedTime;
                                          } else {
                                              const formattedDate = date.toLocaleDateString('en-US', labelFormat);
-                                             // console.log("Formatted Date (toLocaleDateDateString):", formattedDate);
                                              return formattedDate;
                                          }
                                     }
@@ -967,7 +977,7 @@
                                      maxRotation: 45, // Rotate labels up to 45 degrees
                                      minRotation: 45, // Ensure labels are rotated by at least 45 degrees
                                      autoSkip: true, // Allow Chart.js to automatically skip ticks
-                                     // Adjust maxTicksLimit for minute/hourly data to show fewer labels
+                                     // Adjusted maxTicksLimit for minute/hourly data to show fewer labels
                                      maxTicksLimit: timeUnit === 'minute' ? 8 : (timeUnit === 'hour' ? 12 : 10) // Adjusted limits
                                 }
                             },
@@ -1000,37 +1010,43 @@
             }
         }
 
-        // Function to explicitly set canvas size based on container
-        // Removed setCanvasSize function as CSS handles responsiveness
-
-         // --- Currency Converter Logic ---
-
-         // Event listeners for converter inputs and selects
-         document.getElementById('amount1').addEventListener('input', performConversion);
-         document.getElementById('amount2').addEventListener('input', performConversion); // Add listener to the second input
-         document.getElementById('currency1').addEventListener('change', performConversion);
-         document.getElementById('currency2').addEventListener('change', performConversion);
-
 
         // Fetch data and render chart immediately when the page loads
         window.onload = function() {
-            // Removed setCanvasSize call
             fetchBtcPriceAndChange();
             fetchAndRenderChart();
             populateConverterCurrencies(); // Populate converter dropdowns on load
+            highlightActiveNavLink(); // Highlight the active navigation link
+
+            // Add event listeners for instant converter updates on input
+            const amount1Input = document.getElementById('amount1');
+            const amount2Input = document.getElementById('amount2');
+            const currency1Select = document.getElementById('currency1');
+            const currency2Select = document.getElementById('currency2');
+
+            if (amount1Input && amount2Input && currency1Select && currency2Select) {
+                amount1Input.addEventListener('input', performConversion);
+                amount2Input.addEventListener('input', performConversion);
+                currency1Select.addEventListener('change', performConversion);
+                currency2Select.addEventListener('change', performConversion);
+            }
+
         };
 
 
         // Fetch the price and change every 30 seconds
         setInterval(fetchBtcPriceAndChange, 30000);
 
-        // Add event listener to the main currency select dropdown
+        // Add event listener to the main currency select dropdown (for price, change, and chart)
         document.getElementById('currency-select').addEventListener('change', () => {
-            fetchBtcPriceAndChange(); // Update price and change
+            fetchBtcPriceAndChange(); // Update price and change (this will call performConversion internally)
             fetchAndRenderChart(); // Update chart
-            // Also update the second currency in the converter to match the main selection
-            document.getElementById('currency2').value = document.getElementById('currency-select').value;
-            performConversion(); // Perform conversion with the new currency
+             // Also update the second currency in the converter to match the main selection
+            const currency2Select = document.getElementById('currency2');
+            if (currency2Select) {
+                 currency2Select.value = document.getElementById('currency-select').value;
+            }
+            // The performConversion is called by fetchBtcPriceAndChange after the new price is ready.
         });
 
         // Add event listeners to the time range buttons
@@ -1050,7 +1066,6 @@
 
          // Add a resize observer to make the chart responsive
          const resizeObserver = new ResizeObserver(() => {
-             // Removed setCanvasSize call
              if (btcChartInstance) {
                  btcChartInstance.resize();
              }
@@ -1058,6 +1073,67 @@
 
          const chartContainer = document.getElementById('chart-container');
          resizeObserver.observe(chartContainer);
+
+         // Function to highlight the active navigation link
+         function highlightActiveNavLink() {
+             const navLinks = document.querySelectorAll('nav a');
+             const currentPathname = window.location.pathname;
+             const currentHash = window.location.hash;
+
+             // Determine if the current page is index.html or the root path
+             const isIndexPage = currentPathname === '/' || currentPathname.endsWith('/index.html');
+
+             // Normalize current pathname: treat '/' as '/index.html' for comparison
+             const normalizedCurrentPathname = (currentPathname === '/' || currentPathname === '') ? '/index.html' : currentPathname;
+
+
+             navLinks.forEach(link => {
+                 // Remove the active class from all links first
+                 link.classList.remove('active-nav-link');
+
+                 const linkHref = link.getAttribute('href'); // Get the raw href attribute
+
+                 if (linkHref) { // Ensure href is not null or empty
+                     // Extract pathname and hash from the link's href
+                     let linkPathname = '';
+                     let linkHash = '';
+
+                     const hashIndex = linkHref.indexOf('#');
+                     if (hashIndex > -1) {
+                         linkPathname = linkHref.substring(0, hashIndex);
+                         linkHash = linkHref.substring(hashIndex);
+                     } else {
+                         linkPathname = linkHref;
+                     }
+
+                     // If the linkPathname is empty (e.g., just '#section'), assume it's on the current page's pathname
+                     if (linkPathname === '') {
+                         linkPathname = currentPathname; // Use current pathname for comparison
+                     }
+
+                     // Normalize link pathname: treat '/' as '/index.html' for comparison
+                     const normalizedLinkPathname = (linkPathname === '/' || linkPathname === '') ? '/index.html' : linkPathname;
+
+
+                     // Compare normalized pathnames and hashes
+                     // If the link's pathname matches the current normalized pathname
+                     if (normalizedLinkPathname === normalizedCurrentPathname) {
+                         // If it's the index page and the link is "Home" (the new text)
+                         if (isIndexPage && link.textContent.trim() === 'Home') {
+                             link.classList.add('active-nav-link');
+                         } else if (!isIndexPage) {
+                             // For other pages, check if the hashes match or if neither has a hash
+                             if (linkHash === currentHash || (linkHash === '' && currentHash === '')) {
+                                 link.classList.add('active-nav-link');
+                             }
+                         } else if (isIndexPage && normalizedLinkPathname === '/index.html' && linkHash !== '' && linkHash === currentHash) {
+                              // Special case for index page with hash links
+                             link.classList.add('active-nav-link');
+                         }
+                     }
+                 }
+             });
+         }
 
     </script>
 
